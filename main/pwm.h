@@ -14,6 +14,6 @@ extern ledc_timer_config_t timer;
 extern ledc_channel_config_t channel;
 
 void pwm_init(void);
-void pwm_set_duty(int level, int freq);
+void pwm_set_duty(int level);
 
 #endif

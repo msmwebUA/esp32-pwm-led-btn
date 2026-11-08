@@ -4,11 +4,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+#include "esp_timer.h"
 #include <stdio.h>
 
 #define BUTTON_PIN GPIO_NUM_4
 #define DEBOUNCE_DELAY_MS 50
-#define BLINK_FREQ 5 // 5 Hz
+#define BLINK_INTERVAL_US 500000 // 500 ms
+
+// functions
+void setup(void);
+void switch_led_state(void);
+void led_blink(void *arg);
 
 // led states
 typedef enum {
@@ -20,9 +26,15 @@ typedef enum {
 
 LedState led_current_state = OFF;
 
-// function
-void setup(void);
-void switch_led_state(void);
+static int led_level = 0;
+
+// timer
+const esp_timer_create_args_t timer_args = {
+  .callback = led_blink,
+  .name = "led_blink_callback"
+};
+
+esp_timer_handle_t esp_timer;
 
 void app_main(void) {
   // pins init
@@ -53,25 +65,33 @@ void setup(void) {
   gpio_set_pull_mode(BUTTON_PIN, GPIO_PULLUP_ONLY);
   // init pwm
   pwm_init();
+  // init timer
+  esp_timer_create(&timer_args, &esp_timer);
 }
 
 void switch_led_state(void) {
   switch(led_current_state) {
     case OFF:
+      pwm_set_duty(100);
       led_current_state = ON;
-      pwm_set_duty(100, 0);
       break;
     case ON:
+      pwm_set_duty(25);
       led_current_state = DIMMED;
-      pwm_set_duty(25, 0);
       break;
     case DIMMED:
+      esp_timer_start_periodic(esp_timer, BLINK_INTERVAL_US);
       led_current_state = BLINK;
-      pwm_set_duty(100, BLINK_FREQ);
       break;
     case BLINK:
+      esp_timer_stop(esp_timer);
+      pwm_set_duty(0);
       led_current_state = OFF;
-      pwm_set_duty(0, 0);
       break;
   }
+}
+
+void led_blink(void *arg) {
+  led_level = (led_level) ? 0 : 100;
+  pwm_set_duty(led_level);
 }

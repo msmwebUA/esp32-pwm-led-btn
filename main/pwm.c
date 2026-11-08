@@ -29,11 +29,7 @@ void pwm_init(void) {
 
 // Set PWM duty cycle and interval for blinking
 // Level: 0..100%, freq: pwm frequency in Hz, pass 0 for default
-void pwm_set_duty(int level, int freq) {
-  // set default frequency if 0 passed as argument
-  if (freq == 0) {
-    freq = PWM_FREQ;
-  }
+void pwm_set_duty(int level) {
   // duty cycle
   int duty_cycle = 0;
   if (level <= 0) {
@@ -44,7 +40,6 @@ void pwm_set_duty(int level, int freq) {
     duty_cycle = PWM_MAX * level / 100;
   }
   // set pwm
-  ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0, freq);
   ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty_cycle);
   ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 }
