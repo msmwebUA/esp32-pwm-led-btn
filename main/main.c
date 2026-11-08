@@ -1,3 +1,6 @@
+// FULL CODE AVAILABLE AT GITHUB
+// https://github.com/msmwebUA/esp32-pwm-led-btn.git
+
 // button: gpio4 - gnd (internal pull-up)
 // led: gpio7 - 220 Ohm - led - gnd
 #include "pwm.h"
@@ -27,6 +30,7 @@ typedef enum {
 LedState led_current_state = OFF;
 
 static int led_level = 0;
+static int btn_counter = 0;
 
 // timer
 const esp_timer_create_args_t timer_args = {
@@ -51,7 +55,9 @@ void app_main(void) {
       vTaskDelay(pdMS_TO_TICKS(DEBOUNCE_DELAY_MS)); // debounce delay
       if(gpio_get_level(BUTTON_PIN) == 0) {
         switch_led_state();
+        btn_counter++;
         printf("Switched to state %d\n", led_current_state);
+        printf("Clicks: %d\n", btn_counter);
       }
     }
     btn_last_state = btn_state;
